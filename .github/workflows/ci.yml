@@ -32,5 +32,9 @@ jobs:
 
       - name: Fixture gate
         run: |
-          vaultsweep scan fixtures/leaky-repo --fail-on high; test $? -eq 1
+          set +e
+          vaultsweep scan fixtures/leaky-repo --fail-on high
+          leaky_code=$?
+          set -e
+          test "$leaky_code" -eq 1
           vaultsweep scan fixtures/clean-repo --fail-on high
