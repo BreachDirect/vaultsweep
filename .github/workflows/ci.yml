@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install
+        run: |
+          pip install -e .
+          pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check vaultsweep tests
+
+      - name: Test
+        run: pytest tests/ -v
+
+      - name: Security CI
+        run: bandit -r vaultsweep -ll -q
+
+      - name: Fixture gate
+        run: |
+          vaultsweep scan fixtures/leaky-repo --fail-on high; test $? -eq 1
+          vaultsweep scan fixtures/clean-repo --fail-on high
